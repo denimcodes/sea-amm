@@ -71,6 +71,13 @@ def swap(
     token_vault_b: TokenAccount,
 ):
     # account checks
+    pool_pda = Pubkey.find_program_address(
+        ["pool", token_mint_a, token_mint_b])[0]
+    assert pool_pda == pool.key(), "Pool address is not valid"
+    assert token_in_mint.key() == token_mint_a.key() or token_in_mint.key(
+    ) == token_mint_b.key(), "Token not available in pool"
+    assert token_in_amount > 0, "Token amount must be greater than zero"
+
     # determine which token is token in
     is_token_a = token_in_mint.key() == token_mint_a.key()
     token_out_vault = token_vault_a
@@ -81,12 +88,14 @@ def swap(
     # dy = ydx / (x + dx)j
     token_out_amount = (token_out_vault.amount(
     ) * token_in_amount) // (token_in_vault.amount() + token_in_amount)
+
     # Transfer token in from user to pool
     token_in_vault.transfer(
         authority=user,
         to=token_out_vault,
         amount=token_in_amount
     )
+
     # Transfer token out from pool to user
     token_out_vault.transfer(
         authority=pool,
@@ -112,6 +121,14 @@ def add_liquidity(
     token_amount_b: u64,
 ):
     # account checks
+    pool_pda = Pubkey.find_program_address(
+        ["pool", token_mint_a, token_mint_b])[0]
+    assert pool_pda == pool.key(), "Pool address is not valid"
+    lp_token_mint_pda = Pubkey.find_program_address(
+        ["lp-token-mint", token_mint_a, token_mint_b])[0]
+    assert lp_token_mint_pda == lp_token_mint.key(), "LP token mint address is not valid"
+    assert token_amount_a > 0 and token_amount_b > 0, "Token amount must be greater than zero"
+
     # transfer tokens from user to pool
     user_token_account_a.transfer(
         authority=user,
@@ -123,6 +140,7 @@ def add_liquidity(
         to=pool_token_vault_b,
         amount=token_amount_b
     )
+
     # check no price change after adding liquidity
     if pool_token_vault_a.amount() > 0 or pool_token_vault_b.amount() > 0:
         assert pool_token_vault_a.amount(
@@ -171,12 +189,20 @@ def remove_liquidity(
     user_lp_token_account: TokenAccount
 ):
     # check accounts
+    pool_pda = Pubkey.find_program_address(
+        ["pool", token_mint_a, token_mint_b])[0]
+    assert pool_pda == pool.key(), "Pool address is not valid"
+    lp_token_mint_pda = Pubkey.find_program_address(
+        ["lp-token-mint", token_mint_a, token_mint_b])[0]
+    assert lp_token_mint_pda == lp_token_mint.key(), "LP token mint address is not valid"
+
     # calculate token amount to withdraw
     token_burn_amount = user_lp_token_account.amount()
     token_amount_a = pool_token_vault_a.amount(
     ) * token_burn_amount // lp_token_mint.supply()
     token_amount_b = pool_token_vault_b.amount(
     ) * token_burn_amount // lp_token_mint.supply()
+
     # burn lp tokens
     lp_token_mint.burn(
         authority=pool,
@@ -184,6 +210,7 @@ def remove_liquidity(
         amount=token_burn_amount,
         signer=["pool", token_mint_a, token_mint_b]
     )
+
     # transfer both tokens from pool to user
     pool_token_vault_a.transfer(
         authority=pool,

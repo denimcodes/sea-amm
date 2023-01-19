@@ -103,6 +103,42 @@ pub fn add_liquidity_handler<'info>(
     mut token_amount_a: u64,
     mut token_amount_b: u64,
 ) -> () {
+    let mut pool_pda = Pubkey::find_program_address(
+        Mutable::new(vec![
+            "pool".to_string().as_bytes().as_ref(),
+            token_mint_a.key().as_ref(),
+            token_mint_b.key().as_ref(),
+        ])
+        .borrow()
+        .as_slice(),
+        &id(),
+    )
+    .0;
+
+    if !(pool_pda == pool.borrow().__account__.key()) {
+        panic!("Pool address is not valid");
+    }
+
+    let mut lp_token_mint_pda = Pubkey::find_program_address(
+        Mutable::new(vec![
+            "lp-token-mint".to_string().as_bytes().as_ref(),
+            token_mint_a.key().as_ref(),
+            token_mint_b.key().as_ref(),
+        ])
+        .borrow()
+        .as_slice(),
+        &id(),
+    )
+    .0;
+
+    if !(lp_token_mint_pda == lp_token_mint.key()) {
+        panic!("LP token mint address is not valid");
+    }
+
+    if !((token_amount_a > 0) && (token_amount_b > 0)) {
+        panic!("Token amount must be greater than zero");
+    }
+
     token::transfer(
         CpiContext::new(
             user_token_account_a.programs.get("token_program"),
@@ -216,6 +252,38 @@ pub fn remove_liquidity_handler<'info>(
     mut lp_token_mint: SeahorseAccount<'info, '_, Mint>,
     mut user_lp_token_account: SeahorseAccount<'info, '_, TokenAccount>,
 ) -> () {
+    let mut pool_pda = Pubkey::find_program_address(
+        Mutable::new(vec![
+            "pool".to_string().as_bytes().as_ref(),
+            token_mint_a.key().as_ref(),
+            token_mint_b.key().as_ref(),
+        ])
+        .borrow()
+        .as_slice(),
+        &id(),
+    )
+    .0;
+
+    if !(pool_pda == pool.borrow().__account__.key()) {
+        panic!("Pool address is not valid");
+    }
+
+    let mut lp_token_mint_pda = Pubkey::find_program_address(
+        Mutable::new(vec![
+            "lp-token-mint".to_string().as_bytes().as_ref(),
+            token_mint_a.key().as_ref(),
+            token_mint_b.key().as_ref(),
+        ])
+        .borrow()
+        .as_slice(),
+        &id(),
+    )
+    .0;
+
+    if !(lp_token_mint_pda == lp_token_mint.key()) {
+        panic!("LP token mint address is not valid");
+    }
+
     let mut token_burn_amount = user_lp_token_account.amount;
     let mut token_amount_a = (pool_token_vault_a.amount * token_burn_amount) / lp_token_mint.supply;
     let mut token_amount_b = (pool_token_vault_b.amount * token_burn_amount) / lp_token_mint.supply;
@@ -292,6 +360,31 @@ pub fn swap_handler<'info>(
     mut token_vault_a: SeahorseAccount<'info, '_, TokenAccount>,
     mut token_vault_b: SeahorseAccount<'info, '_, TokenAccount>,
 ) -> () {
+    let mut pool_pda = Pubkey::find_program_address(
+        Mutable::new(vec![
+            "pool".to_string().as_bytes().as_ref(),
+            token_mint_a.key().as_ref(),
+            token_mint_b.key().as_ref(),
+        ])
+        .borrow()
+        .as_slice(),
+        &id(),
+    )
+    .0;
+
+    if !(pool_pda == pool.borrow().__account__.key()) {
+        panic!("Pool address is not valid");
+    }
+
+    if !((token_in_mint.key() == token_mint_a.key()) || (token_in_mint.key() == token_mint_b.key()))
+    {
+        panic!("Token not available in pool");
+    }
+
+    if !(token_in_amount > 0) {
+        panic!("Token amount must be greater than zero");
+    }
+
     let mut is_token_a = token_in_mint.key() == token_mint_a.key();
     let mut token_out_vault = token_vault_a;
 
