@@ -5,28 +5,6 @@ from seahorse.prelude import *
 
 declare_id('BBFDagoxxEadDkckRhXwRH2TmycytSjws4cErd6qKTYY')
 
-# swap equation
-# dy = ydx / (x + dx)
-# where dy is token amount out
-# y = token out amount in vault
-# dx = token in amount from user
-# x = token in amount in vault
-
-# shares to mint equation
-# s = dx/x*T
-# where dx is token in amount from user
-# x = token in amount in vault
-# T = total shares
-
-# add liquidity restriction
-# dx / dy = x / y
-
-# how many tokens to withdraw
-# dx = x * s / T
-# where x is token in amount in vault
-# s = shares to burn
-# T = total shares
-
 
 class Pool(Account):
     bump: u8

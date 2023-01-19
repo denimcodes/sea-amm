@@ -149,11 +149,4 @@ describe("sea_amm", () => {
 			.rpc();
 		console.log("Your transaction signature", tx);
 	});
-
-	// it("add liquidity", async () => {
-	// });
-
-	// it("swap", async () => {});
-
-	// it("remove liquidity", async () => {});
 });
