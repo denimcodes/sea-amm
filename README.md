@@ -15,7 +15,7 @@ A constant product automated market maker (CPMM) uses a constant product formula
 #### Program state
 
 Solana program states are stored in data accounts. 
-Here we have a `pool` account here which is used for storing a pair of tokens.
+Here we have a `pool` account which is used for storing a pair of tokens.
 
 #### Program Instructions
 
